@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hp.dao.PersonDao">
+    <resultMap id="BaseResultMap" type="com.hp.bean.Person">
+        <!--下面的 标签要映射到实体类-->
+        <!--id 只有1个-->
+        <!--colum 是数据库中的别名  很多是 下划线的-->
+        <!--property 是实体类中的属性  一般是驼峰-->
+        <id column="id" property="id"></id>
+        <result column="name" property="name"></result>
+        <result column="gender" property="gender"></result>
+        <result column="birthday" property="birthday"></result>
+        <result column="address" property="address"></result>
+        <result column="score" property="score"></result>
+    </resultMap>
+    <!--com.hp.dao.PersonDao +id 就是全id-->
+    <select id="selectAll" resultMap="BaseResultMap">
+        select * from person
+    </select>
+
+</mapper>
