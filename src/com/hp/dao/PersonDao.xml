@@ -19,4 +19,178 @@
         select * from person
     </select>
 
+    <!--sql 片段-->
+    <sql id="allColum">
+        id,name,gender,birthday,address,score
+    </sql>
+    <!--隐藏 生日的sql片段-->
+    <sql id="birthdayColum">
+        id,name,gender,address,score
+    </sql>
+
+    <!--sql 语句中携带参数，其实就是指的  where语句 parameterType  parameter 参数的Type 类型学 （int,String,Map,List,Set）-->
+    <!--select * from person where gender=2 -->
+    <select id="selectPersonBySex" resultType="com.hp.bean.Person" parameterType="int">
+        select <include refid="birthdayColum"/> from person where gender = #{sex}
+    </select>
+
+     <!--查总条数： select count(*) from person;  返回的是int 类型  和上面两个返回的类型不一样的-->
+    <select id="selectCount" resultType="long">
+        select count(*) from person
+    </select>
+    <!--查询女生总条数有几个： select count(*) from person where gender=2 and score>100-->
+    <!--当前端传来 多个 参数的时候，需要看着几个参数是否是同一个类中的属性的，如何是 那么可以直接可以用这个类 做参数
+     (这个是单表)
+    -->
+    <!--如何不是 同一个类中的 (这个是多表！！！)，那么 可以 手写一个参数的实体类（DTO）,或者 使用Map做参数-->
+
+    <select id="selectCountByParam01" resultType="long" parameterType="com.hp.bean.Person">
+      select count(*) from person where gender=#{gender} and score > #{score}
+    </select>
+
+    <!--查询性别是2，且 生日 大于2020-09-07 的人有哪些-->
+    <select id="selectCountByParam02" resultMap="BaseResultMap" parameterType="map">
+        <![CDATA[ select * from person where gender=#{gender} and birthday < #{birthday} ]]>
+    </select>
+
+    <!--1. 查询 分值最高的人是谁 ？-->
+    <!--子查询  select * from person where score=(select max(score) from person );-->
+    <select id="selectMaxname" resultMap="BaseResultMap">
+      select * from person where score=(select max(score) from person)
+    </select>
+
+    <!--2. 所有女生的平均分值是多少 ？-->
+    <!--<select id="selectAVG" resultType="double" parameterType="com.hp.bean.Person">-->
+        <!--select avg(score) from person where gender=#{gender};-->
+    <!--</select>-->
+
+    <!--分组查询-->
+    <!--男生和女生的平均分各多少？  select gender,avg(score) from person group by gender;-->
+    <select id="selectAvgScore" resultType="com.hp.dto.PersonDTO">
+          select gender,avg(score) as avgScore from person group by gender
+    </select>
+
+    <!--男生和女生的平均分值  大于200的都有什么 -->
+    <!--select gender,avg(score) as avgScore from person group by gender HAVING avgScore>200;-->
+    <select id="selectAvgScoreParam" resultType="com.hp.dto.PersonDTO" parameterType="int">
+         select gender,avg(score) as avgScore from person group by gender having avgScore >#{score}
+    </select>
+
+    <!--用map可以接受任何的数据，常见于 多表-->
+    <select id="selectAvgScoreParam02" resultType="map" parameterType="int">
+            select gender,avg(score) as avgScore from person group by gender having avgScore >#{score}
+    </select>
+
+    <!--3. 所有人的分数大于100的或者性别是1的-->
+    <!--select * from person where score>100 or gender =1;-->
+    <select id="selectCountByParam03" resultMap="BaseResultMap" parameterType="map">
+        select * from person where  score > #{score} and gender=#{gender}
+    </select>
+
+    <!--查询 姓孙的 第一种方式 模糊查询-->
+    <!--select * from person where name like '孙%'-->
+    <!--第一种方式： 使用 $ 去拼接，但是这样做不好，因为是拼接的，sql编译的时候没有 ？， 容易被黑客注入-->
+    <select id="selectPersonByLike" resultMap="BaseResultMap" parameterType="string">
+          select * from person where name like '${name}%'
+    </select>
+
+    <!--查询 姓孙的 第二种方式 模糊查询  使用sql语句的concat 连接 是可以编译的，可以用这种-->
+    <select id="selectPersonByLike02" resultMap="BaseResultMap" parameterType="string">
+          select * from person where name like concat ('%',#{name},'%')
+    </select>
+    <!--查询 姓孙的 第三种方式 模糊查询  是可以编译的，可以用这种-->
+    <select id="selectPersonByLike03" resultMap="BaseResultMap"  parameterType="string">
+        select * from person where name like "%"#{name}"%"
+    </select>
+
+    <!--//增加一条数据
+    insert into person (id, name , gender , birthday , address ,score) values(null,#{name}...)-->
+    <!--场景： 学生多， 班级1  当我  张三 cid,李四cid, 王五 cid, 学生表， 大数据 id 班级-->
+    <!--插入数据之后， 自动上报我们  主键id 很重要 -->
+
+    <!--selectKey 标签 一般是多表级联 插入的时候，需要获取刚刚插入的数据的主键id的时候，用到的-->
+    <!--keyProperty: 是指主键的id-->
+    <!--order：指的是 自增的主键 意思是： 数据插入后诞生的还是插入前诞生的， mysql after ,oracle前-->
+    <!--resultType: 主键id的数据类型， 一般是int, 分布式 是String 雪花算法-->
+    <!--LAST_INSERT_ID() :查询最后插入的主键id-->
+    <insert id="insertPerson" parameterType="com.hp.bean.Person">
+    <selectKey keyProperty="id" order="AFTER" resultType="int">
+        select LAST_INSERT_ID()
+    </selectKey>
+          insert into person (id, name , gender , birthday , address ,score)
+          values(null,#{name},#{gender}, #{birthday}, #{address}, #{score})
+    </insert>
+
+    <!--删除一条数据 delete from person where id=?;-->
+    <delete id="deletePersonById" parameterType="int">
+        delete from person where id=#{id}
+    </delete>
+
+   <!--=================================-->
+
+    <!--动态sql 之 动态查询  通俗讲：就是 select + if 判断-->
+    <!--动态sql 有9个
+     where 1. 删除 第一个 and 2.代替了 原始的sql 中的 where,where 常和if搭配-->
+        <!--where 里 需要 把方法里的 参数（map,实体类）的属性 写全-->
+
+    <!--if 的注意事项：-->
+    <!--test="gender 是指的 实体类中的属性，是驼峰的-->
+    <select id="dongTaiSelect" resultMap="BaseResultMap" parameterType="com.hp.bean.Person">
+        select * from person p
+          <where>
+              <if test="id != null and id != '' ">
+                  p.id=#{id}
+              </if>
+              <if test="name != null and name != '' ">
+                 and p.name=#{name}
+              </if>
+              <if test="gender != null and gender != '' ">
+                  and p.gender=#{gender}
+              </if>
+              <if test="birthday != null and birthday != '' ">
+                  and p.birthday=#{birthday}
+              </if>
+              <if test="address != null and address != '' ">
+                  and p.address=#{address}
+              </if>
+              <if test="score != null and score != '' ">
+                  and p.score > #{score}
+              </if>
+
+          </where>
+    </select>
+
+    <!--动态的修改  update person set xx=xx where id=?-->
+    <!--set 标签-->
+    <update id="dongtaiUpdate" parameterType="com.hp.bean.Person">
+        update person p
+        <set>
+            <if test="name != null and name != '' ">
+                 p.name=#{name},
+            </if>
+            <if test="gender != null and gender != '' ">
+                 p.gender=#{gender},
+            </if>
+            <if test="birthday != null ">
+                 p.birthday=#{birthday},
+            </if>
+            <if test="address != null and address != '' ">
+                 p.address=#{address},
+            </if>
+            <if test="score != null and score != '' ">
+                 p.score > #{score}
+            </if>
+        </set>
+        where p.id=#{id}
+    </update>
+
+    <!--批量删除  动态 sql 之 foreach -->
+    <!--delete from person where id in(1,2,3,4)-->
+    <!--(1,2,3,4) 把它当做一个集合 看待 ids-->
+    <delete id="piliangDel" parameterType="map">
+        delete from person where id in
+        <foreach collection="ids" open="(" item="id" separator="," close=")" index="index" >
+            #{id}
+        </foreach>
+    </delete>
 </mapper>
