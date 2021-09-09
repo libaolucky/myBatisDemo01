@@ -1,5 +1,7 @@
 import com.hp.bean.Person;
 import com.hp.dto.PersonDTO;
+import com.li.bean.Human;
+import com.li.bean.HumanExample;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -272,6 +274,151 @@ public class MybatisTest {
     //以上 代码 不用手写，因为谁写 谁垃圾
     // 以上的 xml的代码 不需要我写！！！ DTO 不需要我写！！！
     //但是要能看懂 了解
+
+
+    // 这是重点 逆向生成， 公司都用
+    // 没有 写一行代码  但是 已经 功能都实现了
+    @Test
+    public void test20(){
+      //  Preparing: select count(*) from human
+        //select count(*) from human WHERE gender = 2 and address='西京';
+        HumanExample example=new HumanExample(); //创建一个 例子类
+        HumanExample.Criteria criteria = example.createCriteria(); //用例子类实现查询的规则获取标准
+        //criteria.andGenderEqualTo(2);  //select count(*) from human WHERE ( gender = ? )
+        //criteria.andAddressEqualTo("西京");
+        //案例： 查询 地址 是西京的人有几个人？  select count(*) from human WHERE address like "%西京%"
+        //criteria.andAddressLike("%"+"西京"+"%");
+        // 查询 家住在北京 或者 分数是555的人有几个 select count(*) fromr human where address="北京" or scorer=555
+        // 因为 criteria 查询标准里没有 or 但是有 in
+       // example.or().andAddressEqualTo("北京");
+        //example.or().andScoreEqualTo(555.0);  // or 不需要 criteria 类
+
+        // select count(*) fromr human where id=3 or id=4 or id=5
+        // 等于 select * fromr human where in(1,4,5)
+        List<Integer> ids=new ArrayList<>();
+        ids.add(1);
+        ids.add(4);
+        ids.add(5);
+        //example.or().andIdIn(ids);
+        criteria.andIdIn(ids);
+
+        //当 example 的 criteria 不用 赋值的时候，则是
+        long o=sqlSession.selectOne("com.li.dao.HumanDAO.countByExample",example);
+        System.out.println("o = " + o);
+        sqlSession.close();
+    }
+
+
+    // 单表的所有
+// 查询：
+// select * from human;  -----全查   test21();
+// select * from human where gendar=2;
+
+    //作业1： 把下面的 测试了！！！
+// select * from human where gendar=1;
+// select * from human where id=1;
+// select * from human where score >80;
+// select * from human where score >80 and gendar=1;
+// select * from human where score >80 and gendar=1 and address like "%西京%";
+
+
+
+    @Test
+    public void test21(){
+        HumanExample example=new HumanExample();
+        List<Human> Humans = sqlSession.selectList("com.li.dao.HumanDAO.selectByExample", example);
+        for (Human human : Humans) {
+            System.out.println("human = " + human);
+        }
+        sqlSession.close();
+    }
+
+    @Test
+    public void test21_01(){
+        // select * from human where gendar=2;
+        HumanExample example=new HumanExample();
+        HumanExample.Criteria criteria = example.createCriteria();
+        criteria.andGenderEqualTo(2);
+
+        List<Human> Humans = sqlSession.selectList("com.li.dao.HumanDAO.selectByExample", example);
+        for (Human human : Humans) {
+            System.out.println("human = " + human);
+        }
+        sqlSession.close();
+
+    }
+
+    @Test
+    public void test21_02(){
+        // select * from human where gendar=1;
+        HumanExample example=new HumanExample();
+        HumanExample.Criteria criteria = example.createCriteria();
+        criteria.andGenderEqualTo(1);
+
+        List<Human> Humans = sqlSession.selectList("com.li.dao.HumanDAO.selectByExample", example);
+        for (Human human : Humans) {
+            System.out.println("human = " + human);
+        }
+        sqlSession.close();
+    }
+    @Test
+    public void test21_03(){
+        // select * from human where id=1;
+        HumanExample example=new HumanExample();
+        HumanExample.Criteria criteria = example.createCriteria();
+        criteria.andIdEqualTo(1);
+
+        List<Human> Humans = sqlSession.selectList("com.li.dao.HumanDAO.selectByExample", example);
+        for (Human human : Humans) {
+            System.out.println("human = " + human);
+        }
+        sqlSession.close();
+
+    }
+    @Test
+    public void test21_04(){
+        // select * from human where score >80;
+        HumanExample example=new HumanExample();
+        HumanExample.Criteria criteria = example.createCriteria();
+        criteria.andScoreGreaterThan(80.0);
+        List<Human> Humans = sqlSession.selectList("com.li.dao.HumanDAO.selectByExample", example);
+        for (Human human : Humans) {
+            System.out.println("human = " + human);
+        }
+        sqlSession.close();
+
+    }
+
+    @Test
+    public void test21_05(){
+        // select * from human where score >80 and gendar=1;
+        HumanExample example=new HumanExample();
+        HumanExample.Criteria criteria = example.createCriteria();
+        criteria.andScoreGreaterThan(80.0);
+        criteria.andGenderEqualTo(1);
+        List<Human> Humans = sqlSession.selectList("com.li.dao.HumanDAO.selectByExample", example);
+        for (Human human : Humans) {
+            System.out.println("human = " + human);
+        }
+        sqlSession.close();
+
+    }
+    @Test
+    public void test21_06(){
+        //  select * from human where score >80 and gendar=1 and address like "%西京%";
+        HumanExample example=new HumanExample();
+        HumanExample.Criteria criteria = example.createCriteria();
+        criteria.andScoreGreaterThan(80.0);
+        criteria.andGenderEqualTo(1);
+        criteria.andAddressLike("%"+"西京"+"%");
+        List<Human> Humans = sqlSession.selectList("com.li.dao.HumanDAO.selectByExample", example);
+        for (Human human : Humans) {
+            System.out.println("human = " + human);
+        }
+        sqlSession.close();
+
+    }
+
 
 
 }
